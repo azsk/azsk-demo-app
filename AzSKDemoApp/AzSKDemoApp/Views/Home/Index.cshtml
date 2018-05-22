@@ -1,0 +1,17 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+<div class="jumbotron">
+    <h2>AzSK Demo App</h2>
+    <p class="lead">Welcome to the demo app for the Secure DevOps Kit for Azure!</p>
+</div>
+
+<div class="row">
+    <a class="btn btn-danger" href="/">Get New Image Url</a>
+    <br />
+    <br/>
+    <h4>@ViewBag.ImageUrl </h4>
+    <br />
+    <h5>Download image from here <a target="_parent" href="@ViewBag.ImageUrl">link</a></h5>
+</div>
