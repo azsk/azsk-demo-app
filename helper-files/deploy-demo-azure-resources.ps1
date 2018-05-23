@@ -1,7 +1,7 @@
 ﻿$ErrorActionPreference = 'Stop'
 
 $resourceNonce = [System.Guid]::NewGuid().ToString().Substring(0, 8)
-$resourceGroupName = "AzSDK-Demo-RG-" + $resourceNonce
+$resourceGroupName = "AzSK-Demo-RG-" + $resourceNonce
 $deployLocation = "eastus"
 
 Write-Host "Setting up demo resources. This will take about 3 to 4 minutes..." -ForegroundColor Yellow
@@ -41,9 +41,9 @@ else {
     }
 }
 
-$webServicePlanName = "AzSDK-Demo-ASP-" + $resourceNonce
-$webAppName = "azsdk-demo-wa-" + $resourceNonce
-$storageAccountName = "azsdkdemosa" + $resourceNonce
+$webServicePlanName = "AzSK-Demo-ASP-" + $resourceNonce
+$webAppName = "azsk-demo-wa-" + $resourceNonce
+$storageAccountName = "azskdemosa" + $resourceNonce
 
 try {
     $webServicePlan = Get-AzureRmAppServicePlan -ResourceGroupName $resourceGroupName `
@@ -110,7 +110,7 @@ catch {
 $wc = [System.Net.WebClient]::new()
 $fileName = "prototype" + ".png";
 $tempFilePath = Join-Path $env:TEMP $fileName
-$wc.DownloadFile("https://raw.githubusercontent.com/azsdk/azsdk-demo-app/master/helper-files/prototype.png", $tempFilePath)
+$wc.DownloadFile("https://raw.githubusercontent.com/azsk/azsk-demo-app/master/helper-files/prototype.png", $tempFilePath)
 $na = Set-AzureStorageBlobContent -Context $storageAccount.Context `
     -Container $container.Name `
     -BlobType Block `

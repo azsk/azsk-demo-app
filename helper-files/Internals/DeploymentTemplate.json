@@ -72,7 +72,7 @@
     "slots-staging-apiVersion": "2015-04-01",
     "config-appsettings-apiVersion": "2015-04-01",
     "extentions-apiVersion": "2014-06-01",
-    "webappPkgURI": "https://raw.githubusercontent.com/azsdk/azsdk-demo-app/master/helper-files/Internals/azsdk-demo-app.zip"
+    "webappPkgURI": "https://raw.githubusercontent.com/azsk/azsk-demo-app/master/helper-files/Internals/azsk-demo-app.zip"
   },
   "resources": [
     {
