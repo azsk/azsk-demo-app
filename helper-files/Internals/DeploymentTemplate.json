@@ -1,0 +1,182 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "AppFarmName": {
+      "type": "string",
+      "minLength": 1,
+      "metadata": {
+        "description": "Name of the Server Farm"
+      }
+    },
+    "AppFarmSKU": {
+      "type": "string",
+      "defaultValue": "Free",
+      "metadata": {
+        "description": "Pricing tier of the Server Farm"
+      }
+    },
+    "AppFarmWorkerSize": {
+      "type": "string",
+      "allowedValues": [
+        "0",
+        "1",
+        "2"
+      ],
+      "defaultValue": "0",
+      "metadata": {
+        "description": "Server Farm VM/Worker configuration(CPU Core,RAM etc)"
+      }
+    },
+    "AppName": {
+      "type": "string",
+      "minLength": 1,
+      "metadata": {
+        "description": "Name of the Application"
+      }
+    },
+    "AppType": {
+      "type": "string",
+      "minLength": 0,
+      "allowedValues": [
+        "",
+        "api",
+        "mobileapp"
+      ],
+      "defaultValue": "",
+      "metadata": {
+        "description": "A string that defines, kind of application(Supported values are empty string for Web App, api for API app and mobileapp for Mobile App)"
+      }
+    },
+    "AppFarmInstances": {
+      "type": "int",
+      "defaultValue": 1,
+      "metadata": {
+        "description": "Number of instances of the the SKU"
+      }
+    },
+    "StorageAccountConnectionString": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "StorageAccountConnectionString"
+      }
+    }
+  },
+  "variables": {
+    "location": "[resourceGroup().location]",
+    "appTypePrefix": "WebApp",
+    "microsoft.web-serverfarms-apiVersion": "2014-06-01",
+    "microsoft.web-sites-apiVersion": "2014-06-01",
+    "config-web-apiVersion": "2014-06-01",
+    "slots-staging-apiVersion": "2015-04-01",
+    "config-appsettings-apiVersion": "2015-04-01",
+    "extentions-apiVersion": "2014-06-01",
+    "webappPkgURI": "https://raw.githubusercontent.com/azsk/azsk-demo-app/master/helper-files/Internals/azsk-demo-app.zip"
+  },
+  "resources": [
+    {
+      "name": "[parameters('AppFarmName')]",
+      "type": "Microsoft.Web/serverfarms",
+      "location": "[variables('location')]",
+      "apiVersion": "[variables('microsoft.web-serverfarms-apiVersion')]",
+      "dependsOn": [],
+      "tags": {
+        "displayName": "[concat(variables('appTypePrefix'),'ServerFarm')]"
+      },
+      "properties": {
+        "name": "[parameters('AppFarmName')]",
+        "sku": "[parameters('AppFarmSKU')]",
+        "workerSize": "[parameters('AppFarmWorkerSize')]",
+        "numberOfWorkers": "[parameters('AppFarmInstances')]"
+      }
+    },
+    {
+      "name": "[parameters('AppName')]",
+      "type": "Microsoft.Web/sites",
+      "location": "[variables('location')]",
+      "apiVersion": "[variables('microsoft.web-sites-apiVersion')]",
+      "kind": "[parameters('AppType')]",
+      "dependsOn": [
+        "[concat('Microsoft.Web/serverfarms/', parameters('AppFarmName'))]"
+      ],
+      "tags": {
+        "[concat('hidden-related:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('AppFarmName'))]": "Resource",
+        "displayName": "[variables('appTypePrefix')]"
+      },
+      "properties": {
+        "name": "[parameters('AppName')]",
+        "serverFarm": "[parameters('AppFarmName')]"
+      },
+      "resources": [
+        {
+          "apiVersion": "[variables('config-web-apiVersion')]",
+          "name": "web",
+          "type": "config",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', parameters('AppName'))]",
+            "[concat('Microsoft.Web/Sites/', parameters('AppName'), '/Extensions/MSDeploy')]"
+          ],
+          "tags": {
+            "displayName": "[concat(variables('appTypePrefix'),'BasicSettings')]"
+          },
+          "properties": {
+            "phpVersion": "off",
+            "netFrameworkVersion": "v4.6",
+            "use32BitWorkerProcess": true,
+            "webSocketsEnabled": false,
+            "alwaysOn": false,
+            "requestTracingEnabled": false,
+            "httpLoggingEnabled": false,
+            "logsDirectorySizeLimit": 40,
+            "detailedErrorLoggingEnabled": true,
+            "remoteDebuggingEnabled": false,
+            "remoteDebuggingVersion": "VS2015",
+            "defaultDocuments": []
+          }
+        },
+        {
+          "apiVersion": "[variables('config-appsettings-apiVersion')]",
+          "name": "appsettings",
+          "type": "config",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', parameters('AppName'))]",
+            "[concat('Microsoft.Web/Sites/', parameters('AppName'), '/Extensions/MSDeploy')]"
+          ],
+          "tags": {
+            "displayName": "[concat(variables('appTypePrefix'),'ApplicationSettings')]"
+          },
+          "properties": {
+            "StorageAccountConnectionString": "[parameters('StorageAccountConnectionString')]"
+          }
+        },
+        {
+          "name": "MSDeploy",
+          "type": "Extensions",
+          "location": "[variables('location')]",
+          "apiVersion": "[variables('extentions-apiVersion')]",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', parameters('AppName'))]"
+          ],
+          "tags": {
+            "displayName": "[concat(variables('appTypePrefix'),'MSDeployExtension')]"
+          },
+          "properties": {
+            "packageUri": "[variables('webappPkgURI')]",
+            "dbType": "None",
+            "connectionString": "",
+            "setParameters": {
+              "IIS Web Application Name": "[parameters('AppName')]"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "outputs": {
+    "siteUri": {
+      "type": "string",
+      "value": "[concat('http://',reference(resourceId('Microsoft.Web/sites', parameters('AppName'))).hostNames[0])]"
+    }
+  }
+}
